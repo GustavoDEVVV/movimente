@@ -1,0 +1,27 @@
+.carousel {
+  min-height: 108px;
+}
+
+.carousel-slide {
+  color: var(--text-muted);
+  font-size: 15.5px;
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.carousel-dots button {
+  width: 22px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line);
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.carousel-dots button.active {
+  background: var(--amber);
+}

@@ -1,0 +1,93 @@
+.game-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+  padding: 56px 0;
+  border-top: 1px solid var(--line);
+}
+
+.game-card:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.game-card.reverse .game-visual {
+  order: 2;
+}
+
+.game-card.reverse .game-copy {
+  order: 1;
+}
+
+.game-visual {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-visual svg {
+  width: 88px;
+  height: 88px;
+  opacity: 0.9;
+  z-index: 1;
+}
+
+.track-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--amber-soft), transparent 55%);
+}
+
+.game-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--motion);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.game-copy h3 {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.game-play {
+  margin-top: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--amber);
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.game-play::after {
+  content: "→";
+  transition: transform 0.15s ease;
+}
+
+.game-copy:hover .game-play::after {
+  transform: translateX(4px);
+}
+
+@media (max-width: 780px) {
+  .game-card,
+  .game-card.reverse {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .game-card.reverse .game-visual {
+    order: 1;
+  }
+  .game-card.reverse .game-copy {
+    order: 2;
+  }
+}
