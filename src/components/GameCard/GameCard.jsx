@@ -1,7 +1,8 @@
 import Carousel from '../Carousel/Carousel.jsx'
+import { Link } from 'react-router-dom'
 import './GameCard.css'
 
-function GameCard({ tag, title, slides, visual, playLabel, reverse = false }) {
+function GameCard({ tag, title, slides, visual, playLabel, to, reverse = false }) {
   return (
     <div className={`game-card ${reverse ? 'reverse' : ''}`}>
       <div className="game-visual">
@@ -12,7 +13,7 @@ function GameCard({ tag, title, slides, visual, playLabel, reverse = false }) {
         <span className="game-tag">{tag}</span>
         <h3>{title}</h3>
         <Carousel slides={slides} />
-        <a href="#" className="game-play">{playLabel}</a>
+        <Link to={to} className="game-play">{playLabel}</Link>
       </div>
     </div>
   )

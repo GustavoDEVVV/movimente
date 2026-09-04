@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import GameCard from '../components/GameCard/GameCard.jsx'
+import { obterUltimoJogo, obterRecorde } from '../utils/save.js'
 import './Home.css'
 
-// ícone SVG do jogo de corrida (bonequinho correndo)
 function IconeCorrida() {
   return (
     <svg viewBox="0 0 100 100" fill="none">
@@ -15,7 +17,6 @@ function IconeCorrida() {
   )
 }
 
-// ícone SVG do jogo de mão (mão fechando)
 function IconeMao() {
   return (
     <svg viewBox="0 0 100 100" fill="none">
@@ -26,7 +27,43 @@ function IconeMao() {
   )
 }
 
+// dados de exibição de cada jogo, usados na seção "último save"
+const INFO_JOGOS = {
+  corrida: {
+    titulo: 'Corrida 100m',
+    rota: '/corrida',
+    Icone: IconeCorrida,
+    formatarRecorde: (v) => `${v.toFixed(2)}s`,
+  },
+  flapHand: {
+    titulo: 'Flap Hand',
+    rota: '/flap-hand',
+    Icone: IconeMao,
+    formatarRecorde: (v) => `${v} pts`,
+  },
+}
+
+function formatarData(isoString) {
+  const d = new Date(isoString)
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
+
 function Home() {
+  const [ultimoSave, setUltimoSave] = useState(null)
+
+  // lê o localStorage só depois que o componente monta no navegador
+  useEffect(() => {
+    const ultimoJogo = obterUltimoJogo()
+    if (!ultimoJogo) {
+      setUltimoSave(null)
+      return
+    }
+    const recorde = obterRecorde(ultimoJogo.jogo)
+    setUltimoSave({ ...ultimoJogo, recorde })
+  }, [])
+
+  const infoJogoAtual = ultimoSave ? INFO_JOGOS[ultimoSave.jogo] : null
+
   return (
     <>
       <nav>
@@ -99,6 +136,7 @@ function Home() {
             title="Corrida 100m"
             visual={<IconeCorrida />}
             playLabel="Jogar Corrida 100m"
+            to="/corrida"
             slides={[
               'Corra no lugar levantando os joelhos alternadamente — cada passada te empurra pra frente na pista.',
               'Uma pista em perspectiva reage em tempo real, com linha de chegada se aproximando conforme você avança.',
@@ -111,6 +149,7 @@ function Home() {
             title="Flap Hand"
             visual={<IconeMao />}
             playLabel="Jogar Flap Hand"
+            to="/flap-hand"
             reverse
             slides={[
               'Abra e feche a mão na frente da câmera pra fazer o personagem "bater asas" e ganhar altura.',
@@ -127,26 +166,39 @@ function Home() {
             <span className="eyebrow eyebrow-amber">seu progresso</span>
             <h2>Continue de onde parou.</h2>
           </div>
-          <div className="save-card">
-            <div className="save-left">
-              <div className="save-icon"><IconeCorrida /></div>
+
+          {infoJogoAtual ? (
+            <div className="save-card">
+              <div className="save-left">
+                <div className="save-icon"><infoJogoAtual.Icone /></div>
+                <div className="save-meta">
+                  <span className="mono">último jogo</span>
+                  <h4>{infoJogoAtual.titulo}</h4>
+                </div>
+              </div>
+              <div className="save-stats">
+                <div className="stat">
+                  <span className="num">
+                    {ultimoSave.recorde !== null ? infoJogoAtual.formatarRecorde(ultimoSave.recorde) : '--'}
+                  </span>
+                  <span className="label">seu recorde</span>
+                </div>
+                <div className="stat">
+                  <span className="num">{formatarData(ultimoSave.data)}</span>
+                  <span className="label">última jogada</span>
+                </div>
+              </div>
+              <Link to={infoJogoAtual.rota} className="btn-primary">Continuar</Link>
+            </div>
+          ) : (
+            <div className="save-card">
               <div className="save-meta">
-                <span className="mono">último jogo</span>
-                <h4>Corrida 100m</h4>
+                <span className="mono">nenhum jogo ainda</span>
+                <h4>Escolha um jogo pra começar</h4>
               </div>
+              <a href="#jogos" className="btn-primary">Ver jogos</a>
             </div>
-            <div className="save-stats">
-              <div className="stat">
-                <span className="num">6.90s</span>
-                <span className="label">seu recorde</span>
-              </div>
-              <div className="stat">
-                <span className="num">21/08</span>
-                <span className="label">última jogada</span>
-              </div>
-            </div>
-            <a href="#" className="btn-primary">Continuar</a>
-          </div>
+          )}
         </div>
       </section>
 
