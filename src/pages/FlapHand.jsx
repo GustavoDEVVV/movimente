@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FilesetResolver, GestureRecognizer } from '@mediapipe/tasks-vision'
 import { useDeteccaoMao } from '../games/flapHand/useDeteccaoMao.js'
 import { registrarUltimoJogo } from '../utils/save.js'
+import ModeloCarregando from '../components/ModeloCarregando/ModeloCarregando.jsx'
+import { fadeInPage } from '../utils/animations.js'
 import * as C from '../games/flapHand/config.js'
 
 const CHAVE_RECORDE = 'movimente-flaphand-recorde'
@@ -10,6 +12,7 @@ const CHAVE_RECORDE = 'movimente-flaphand-recorde'
 function FlapHand() {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
+  const raizRef = useRef(null)
   const [status, setStatus] = useState('Carregando modelo...')
   const navigate = useNavigate()
 
@@ -52,7 +55,11 @@ function FlapHand() {
   }
 
   const { processarGesto } = useDeteccaoMao(baterAsa)
-  const navigate2 = navigate // (mantido apenas por clareza, ver observação abaixo)
+
+  // animação de entrada da página (roda uma vez, ao montar)
+  useLayoutEffect(() => {
+    fadeInPage(raizRef)
+  }, [])
 
   // teclas de atalho: 'r' reinicia, 'q' ou ESC volta pra Home
   useEffect(() => {
@@ -243,11 +250,17 @@ function FlapHand() {
   }, [processarGesto])
 
   return (
-    <div style={{ padding: 24, color: 'var(--text)' }}>
+    <div ref={raizRef} style={{ padding: 24, color: 'var(--text)' }}>
       <h1 style={{ textAlign: 'center' }}>Flap Hand</h1>
-      <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>
-        {status === 'ok' ? 'Abra e feche a mão pra voar!' : status}
-      </p>
+
+      {status !== 'ok' ? (
+        <ModeloCarregando texto={status} />
+      ) : (
+        <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>
+          Abra e feche a mão pra voar!
+        </p>
+      )}
+
       <div
         style={{
           display: 'flex',

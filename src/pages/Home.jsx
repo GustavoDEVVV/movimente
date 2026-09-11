@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useLayoutEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import GameCard from '../components/GameCard/GameCard.jsx'
 import { obterUltimoJogo, obterRecorde } from '../utils/save.js'
+import { gsap, SplitText } from '../utils/gsapSetup.js'
+import { fadeInPage, attachHoverPop } from '../utils/animations.js'
 import './Home.css'
 
 function IconeCorrida() {
@@ -27,7 +29,6 @@ function IconeMao() {
   )
 }
 
-// dados de exibição de cada jogo, usados na seção "último save"
 const INFO_JOGOS = {
   corrida: {
     titulo: 'Corrida 100m',
@@ -51,6 +52,12 @@ function formatarData(isoString) {
 function Home() {
   const [ultimoSave, setUltimoSave] = useState(null)
 
+  // refs usados pelas animações do GSAP
+  const raizRef = useRef(null)
+  const tituloRef = useRef(null)
+  const skeletonRef = useRef(null)
+  const ctaRef = useRef(null)
+
   // lê o localStorage só depois que o componente monta no navegador
   useEffect(() => {
     const ultimoJogo = obterUltimoJogo()
@@ -62,10 +69,46 @@ function Home() {
     setUltimoSave({ ...ultimoJogo, recorde })
   }, [])
 
+  // animações de entrada da Home (roda uma vez, ao montar)
+  useLayoutEffect(() => {
+    fadeInPage(raizRef)
+
+    let split
+    if (tituloRef.current) {
+      split = new SplitText(tituloRef.current, { type: 'chars' })
+      gsap.from(split.chars, {
+        yPercent: 120,
+        opacity: 0,
+        stagger: 0.02,
+        duration: 0.7,
+        ease: 'power4.out',
+        delay: 0.15,
+      })
+    }
+
+    if (skeletonRef.current) {
+      const linhas = skeletonRef.current.querySelectorAll('.bone line')
+      const pontos = skeletonRef.current.querySelectorAll('.node')
+
+      gsap.set(linhas, { drawSVG: '0%' })
+      gsap.set(pontos, { scale: 0, transformOrigin: 'center' })
+
+      gsap.to(linhas, { drawSVG: '100%', duration: 0.9, stagger: 0.04, ease: 'power2.inOut', delay: 0.3 })
+      gsap.to(pontos, { scale: 1, duration: 0.5, stagger: 0.03, ease: 'back.out(2.5)', delay: 0.5 })
+    }
+
+    const limparHover = attachHoverPop(ctaRef.current)
+
+    return () => {
+      if (split) split.revert()
+      if (limparHover) limparHover()
+    }
+  }, [])
+
   const infoJogoAtual = ultimoSave ? INFO_JOGOS[ultimoSave.jogo] : null
 
   return (
-    <>
+    <div ref={raizRef}>
       <nav>
         <div className="wrap nav-inner">
           <div className="logo"><span className="logo-dot"></span>movimente</div>
@@ -81,18 +124,18 @@ function Home() {
         <div className="wrap hero-grid">
           <div>
             <span className="eyebrow">controlado por webcam</span>
-            <h1>Seu corpo <em>é</em><br />o controle.</h1>
+            <h1 ref={tituloRef}>Seu corpo <em>é</em><br />o controle.</h1>
             <p className="lead">
               Mova-se na frente da câmera e veja o jogo responder em tempo real.
               Sem joystick, sem teclado — só você, o sensor e a vontade de se mexer.
             </p>
             <div className="hero-ctas">
-              <a href="#jogos" className="btn-primary">Escolher um jogo</a>
+              <a href="#jogos" className="btn-primary" ref={ctaRef}>Escolher um jogo</a>
               <a href="#" className="btn-ghost">Como funciona</a>
             </div>
           </div>
 
-          <div className="skeleton-box">
+          <div className="skeleton-box" ref={skeletonRef}>
             <span className="hud-tag hud-tag-tl">rastreando corpo…</span>
             <svg className="skeleton-svg" viewBox="0 0 300 380">
               <g className="bone" fill="none">
@@ -208,7 +251,7 @@ function Home() {
           <span className="mono">github.com/seu-usuario/movimente</span>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
 

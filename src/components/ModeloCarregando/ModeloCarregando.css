@@ -1,0 +1,22 @@
+.modelo-carregando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.pontos-loading {
+  display: flex;
+  gap: 10px;
+}
+
+.ponto-loading {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--motion);
+  opacity: 0.4;
+  display: inline-block;
+}

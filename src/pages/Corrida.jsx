@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision'
 import { useContadorPassadas } from '../games/corrida/useContadorPassadas.js'
 import { registrarUltimoJogo } from '../utils/save.js'
+import ModeloCarregando from '../components/ModeloCarregando/ModeloCarregando.jsx'
+import { fadeInPage } from '../utils/animations.js'
 import * as C from '../games/corrida/config.js'
 
 const CHAVE_RECORDE = 'movimente-corrida-recorde'
@@ -10,6 +12,7 @@ const CHAVE_RECORDE = 'movimente-corrida-recorde'
 function Corrida() {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
+    const raizRef = useRef(null)
     const [status, setStatus] = useState('Carregando modelo...')
     const navigate = useNavigate()
 
@@ -34,6 +37,11 @@ function Corrida() {
         contador.reiniciar()
         jogo.current = { distancia: 0, inicioMs: null, tempoFinalS: 0, terminou: false, novoRecorde: false }
     }
+
+    // animação de entrada da página (roda uma vez, ao montar)
+    useLayoutEffect(() => {
+        fadeInPage(raizRef)
+    }, [])
 
     // teclas de atalho: 'r' reinicia, 'q' ou ESC volta pra Home
     useEffect(() => {
@@ -179,11 +187,13 @@ function Corrida() {
             ctx.textAlign = 'right'
             ctx.fillStyle = C.COR_TEMPO
             ctx.fillText(`${tempoDecorrido.toFixed(2)}s`, C.LARGURA - 20, 36)
-            if (recordeRef.current !== null) {
-                ctx.font = '13px monospace'
-                ctx.fillStyle = C.COR_RECORDE
-                ctx.fillText(`recorde: ${recordeRef.current.toFixed(2)}s`, C.LARGURA - 20, 56)
-            }
+
+            ctx.font = '13px monospace'
+            ctx.fillStyle = C.COR_RECORDE
+            const textoRecorde = recordeRef.current !== null
+                ? `recorde: ${recordeRef.current.toFixed(2)}s`
+                : 'recorde: --'
+            ctx.fillText(textoRecorde, C.LARGURA - 20, 56)
             ctx.textAlign = 'left'
 
             if (j.inicioMs === null && !j.terminou) {
@@ -235,8 +245,7 @@ function Corrida() {
                             j.distancia = C.DISTANCIA_TOTAL_M
                             j.terminou = true
                             j.tempoFinalS = (timestampMs - j.inicioMs) / 1000
-                            registrarUltimoJogo('corrida')   // <-- adiciona essa linha
-
+                            registrarUltimoJogo('corrida')
 
                             if (recordeRef.current === null || j.tempoFinalS < recordeRef.current) {
                                 recordeRef.current = j.tempoFinalS
@@ -278,11 +287,17 @@ function Corrida() {
     }, [])
 
     return (
-        <div style={{ padding: 24, color: 'var(--text)' }}>
+        <div ref={raizRef} style={{ padding: 24, color: 'var(--text)' }}>
             <h1 style={{ textAlign: 'center' }}>Corrida 100m</h1>
-            <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>
-                {status === 'ok' ? 'Corra no lugar pra avançar na pista!' : status}
-            </p>
+
+            {status !== 'ok' ? (
+                <ModeloCarregando texto={status} />
+            ) : (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>
+                    Corra no lugar pra avançar na pista!
+                </p>
+            )}
+
             <div
                 style={{
                     display: 'flex',
